@@ -12,6 +12,15 @@ Make sure you have the following software installed on your machine:
 
 ## Installation
 
+1. **Clone and configure the monolith repository**
+
+   ```bash
+   git clone --branch feature/microservice-for-dialogs https://github.com/ustinovich-vadim/otus-homeworks.git
+   cd otus-homeworks
+    ```
+    Follow the setup instructions provided in the README.md of the monolith repository to properly configure and run the project.
+
+
 1. **Clone the repository**
 
     ```bash
