@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+    svc-app:
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
+        container_name: svc-app
+        dns:
+            - 8.8.8.8
+            - 8.8.4.4
+        working_dir: /var/www
+        volumes:
+            - .:/var/www
+        networks:
+            - otus_network
+        depends_on:
+            - svc-redis
+            - svc-db
+            - svc-tarantool
+        environment:
+            - QUEUE_CONNECTION=redis
+        command: >
+            sh -c "
+            mkdir -p /var/www/storage /var/www/bootstrap/cache &&
+            chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache &&
+            php-fpm
+            "
+        restart: unless-stopped
+
+    svc-webserver:
+        image: nginx:alpine
+        container_name: svc-webserver
+        dns:
+            - 8.8.8.8
+            - 8.8.4.4
+        ports:
+            - "8001:80"
+        volumes:
+            - .:/var/www
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+        depends_on:
+            - svc-app
+        networks:
+            - otus_network
+        restart: unless-stopped
+
+    svc-db:
+        image: postgres:16
+        container_name: svc-db
+        dns:
+            - 8.8.8.8
+            - 8.8.4.4
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: secret
+        volumes:
+            - dbdata:/var/lib/postgresql/data
+            - ./docker/postgres-config/postgresql.conf:/etc/postgresql/postgresql.conf
+            - ./docker/postgres-config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+        command: [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]
+        ports:
+            - "5434:5432"
+        networks:
+            - otus_network
+        restart: unless-stopped
+
+    svc-redis:
+        image: redis:alpine
+        dns:
+            - 8.8.8.8
+            - 8.8.4.4
+        container_name: svc-redis
+        ports:
+            - "6381:6379"
+        networks:
+            - otus_network
+        restart: unless-stopped
+
+    svc-worker:
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
+        container_name: svc-worker
+        dns:
+            - 8.8.8.8
+            - 8.8.4.4
+        working_dir: /var/www
+        volumes:
+            - .:/var/www
+        networks:
+            - otus_network
+        depends_on:
+            - svc-redis
+            - svc-db
+        environment:
+            - QUEUE_CONNECTION=redis
+        command: >
+            sh -c "
+            php artisan queue:work --tries=3 --timeout=90
+            "
+        restart: unless-stopped
+
+    svc-tarantool:
+        image: tarantool/tarantool:2.10
+        container_name: svc-tarantool
+        ports:
+            - "3301:3301"
+        environment:
+            TARANTOOL_MEMORY_LIMIT: 8G
+        volumes:
+            - ./docker/tarantool/config:/opt/tarantool/config
+        command: >
+            tarantool /opt/tarantool/config/init.lua
+        networks:
+            - otus_network
+        restart: unless-stopped
+
+networks:
+    otus_network:
+        external: true
+
+volumes:
+    dbdata:
+        driver: local
