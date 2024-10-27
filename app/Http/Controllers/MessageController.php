@@ -51,6 +51,8 @@ class MessageController extends Controller
 
             return response()->json('Message created successfully', Response::HTTP_CREATED);
         } catch (Exception $e) {
+            SyncUnreadMessagesCountJob::dispatch($dialogPartnerId);
+
             return response()->json('Failed to create message', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -67,6 +69,8 @@ class MessageController extends Controller
             );
             return response()->json('Messages marked as read', Response::HTTP_OK);
         } catch (Exception $e) {
+            SyncUnreadMessagesCountJob::dispatch($authUserId);
+
             return response()->json('Failed to mark messages as read', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
