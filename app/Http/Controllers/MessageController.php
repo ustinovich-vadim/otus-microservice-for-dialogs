@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Message\CreateMessageRequest;
 use App\Http\Requests\Message\GetMessagesRequest;
+use App\Http\Requests\Message\MarkAsReadMessageRequest;
+use App\Http\Requests\Message\SyncCountOfMessagesRequest;
+use App\Jobs\SyncUnreadMessagesCountJob;
 use App\Services\Auth\AuthenticatedUser;
 use App\Services\Message\MessageService;
 use Exception;
@@ -50,5 +53,28 @@ class MessageController extends Controller
         } catch (Exception $e) {
             return response()->json('Failed to create message', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function markAsRead(MarkAsReadMessageRequest $request): Response
+    {
+        $authUserId = AuthenticatedUser::getId();
+        $messageId = $request->integer('message_id');
+
+        try {
+            $this->messageService->markMessageAsRead(
+                $authUserId,
+                $messageId
+            );
+            return response()->json('Messages marked as read', Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json('Failed to mark messages as read', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function sync(SyncCountOfMessagesRequest $request): Response
+    {
+        SyncUnreadMessagesCountJob::dispatch($request->route('user_id'));
+
+        return response()->json('Sync job dispatched successfully', Response::HTTP_OK);
     }
 }

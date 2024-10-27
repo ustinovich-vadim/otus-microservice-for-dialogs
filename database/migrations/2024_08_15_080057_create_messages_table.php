@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MessageStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,9 +13,11 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('dialog_id');
             $table->unsignedBigInteger('sender_id');
+            $table->string('status')->default(MessageStatusEnum::Pending->value);
             $table->text('text');
             $table->timestamps();
 
+            $table->index('status');
             $table->index('dialog_id');
             $table->index('sender_id');
             $table->index('created_at');

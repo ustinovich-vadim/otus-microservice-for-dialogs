@@ -1,4 +1,4 @@
-# OTUS homework-8
+# OTUS homework-10
 
 This project is a Laravel application set up to run in Docker containers. Follow the steps below to get started.
 
@@ -25,7 +25,7 @@ Make sure you have the following software installed on your machine:
 
     ```bash
     git clone git@github.com:ustinovich-vadim/otus-microservice-for-dialogs.git
-    cd dialog-microservice
+    cd otus-microservice-for-dialogs
    ```
 
 2. **Copy the .env.example file to .env**

@@ -26,4 +26,16 @@ readonly class TokenService
     {
         return $this->authUserId;
     }
+
+    public function getTokenForService(int $userId): string
+    {
+        $payload = [
+            'iss' => 'message-service',
+            'sub' => $userId,
+            'iat' => time(),
+            'exp' => time() + 3600,
+        ];
+
+        return JWT::encode($payload, env('JWT_SECRET'), 'HS256');
+    }
 }

@@ -13,7 +13,6 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AuthenticatedUser::class, AuthenticatedUser::class);
-
     }
 
     /**
