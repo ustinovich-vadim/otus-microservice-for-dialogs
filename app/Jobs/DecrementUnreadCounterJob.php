@@ -34,6 +34,7 @@ class DecrementUnreadCounterJob implements ShouldQueue
 
         if (!$response) {
             $messageService->updateMessageStatus($this->messageId, MessageStatusEnum::Unread->value);
+            SyncUnreadMessagesCountJob::dispatch($this->userId);
         }
     }
 }

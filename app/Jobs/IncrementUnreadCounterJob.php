@@ -34,5 +34,9 @@ class IncrementUnreadCounterJob implements ShouldQueue
 
         $status = $incremented ? MessageStatusEnum::Unread->value : MessageStatusEnum::Failed->value;
         $messageService->updateMessageStatus($this->messageId, $status);
+
+        if ($incremented === false) {
+            SyncUnreadMessagesCountJob::dispatch($this->recipientId);
+        }
     }
 }
